@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdint.h>
 
 typedef struct {
     char* buffer;
@@ -10,12 +11,17 @@ typedef struct {
 } InputBuffer;
 
 typedef enum {
+    EXECUTE_SUCCESS, EXECUTE_TABLE_FULL
+} ExecuteResult;
+
+typedef enum {
     META_COMMAND_SUCCESS,
     META_COMMAND_UNRECOGNIZED_COMMAND
 } MetaCommandResult;
 
 typedef enum {
     PREPARE_SUCCESS,
+    PREPARE_SYNTAX_ERROR,
     PREPARE_UNRECOGNIZED_STATEMENT
 } PrepareResult;
 
@@ -24,11 +30,6 @@ typedef enum {
     STATEMENT_SELECT
 } StatementType;
 
-typedef struct {
-    StatementType type;
-    Row row_to_insert;  // only used by insert statement
-} Statement;
-
 #define COLUMN_USERNAME_SIZE 32
 #define COLUMN_EMAIL_SIZE 255
 typedef struct {
@@ -36,6 +37,11 @@ typedef struct {
     char username[COLUMN_USERNAME_SIZE];
     char email[COLUMN_EMAIL_SIZE];
 } Row;
+
+typedef struct {
+    StatementType type;
+    Row row_to_insert;  // only used by insert statement
+} Statement;
 
 #define size_of_attribute(Struct, Attribute) sizeof(((Struct*)0)->Attribute)
 const uint32_t ID_SIZE = size_of_attribute(Row, id);
@@ -63,16 +69,21 @@ InputBuffer* new_input_buffer();
 void print_prompt();
 void read_input(InputBuffer* input_buffer);
 void close_input_buffer(InputBuffer* input_buffer);
-MetaCommandResult do_meta_command(InputBuffer* input_buffer);
+MetaCommandResult do_meta_command(InputBuffer* input_buffer, Table *table);
 PrepareResult prepare_statement(
     InputBuffer* input_buffer,
-    Statement* statement
+    Statement* stateexecutement
 );
-void execute_statement(Statement* statement);
+ExecuteResult execute_statement(Statement* statement, Table* table);
+void print_row(Row* row);
 void serialize_row(Row* source, void* destination);
 void deserialize_row(void* source, Row* destination);
+void* row_slot(Table* table, uint32_t row_num);
+Table* new_table();
+void free_table(Table* table);
 
 int main(int argc, char* argv[]) {
+    Table* table = new_table();
     InputBuffer* input_buffer = new_input_buffer();
 
     while (true) {
@@ -80,7 +91,7 @@ int main(int argc, char* argv[]) {
         read_input(input_buffer);
 
         if (input_buffer->buffer[0] == '.') {
-            switch (do_meta_command(input_buffer)) {
+            switch (do_meta_command(input_buffer, table)) {
                 case (META_COMMAND_SUCCESS):
                     continue;
                 case (META_COMMAND_UNRECOGNIZED_COMMAND):
@@ -95,6 +106,9 @@ int main(int argc, char* argv[]) {
         switch (prepare_statement(input_buffer, &statement)) {
             case (PREPARE_SUCCESS):
                 break;
+            case (PREPARE_SYNTAX_ERROR):
+                printf("Syntax error. Could not parse statement.\n");
+                continue;
             case (PREPARE_UNRECOGNIZED_STATEMENT):
                 printf(
                     "Unrecognized keyword at start of '%s'.\n",
@@ -103,8 +117,15 @@ int main(int argc, char* argv[]) {
                 continue;
         }
 
-        execute_statement(&statement);
+        switch (execute_statement(&statement, table)) {
+            case (EXECUTE_SUCCESS):
+                printf("Executed.\n");
+                break;
+            case (EXECUTE_TABLE_FULL):
+                printf("Error: Table full.\n");
+                break;
         printf("Executed.\n");
+        }
     }
 }
 
@@ -144,9 +165,10 @@ void close_input_buffer(InputBuffer* input_buffer) {
     free(input_buffer);
 }
 
-MetaCommandResult do_meta_command(InputBuffer* input_buffer) {
+MetaCommandResult do_meta_command(InputBuffer* input_buffer, Table *table) {
     if (strcmp(input_buffer->buffer, ".exit") == 0) {
         close_input_buffer(input_buffer);
+        free_table(table);
         exit(EXIT_SUCCESS);
     } else {
         return META_COMMAND_UNRECOGNIZED_COMMAND;
@@ -179,15 +201,39 @@ PrepareResult prepare_statement(
     return PREPARE_UNRECOGNIZED_STATEMENT;
 }
 
-void execute_statement(Statement* statement) {
+ExecuteResult execute_insert(Statement* statement, Table* table) {
+    if (table->num_rows >= TABLE_MAX_ROWS) {
+        return EXECUTE_TABLE_FULL;
+    }
+
+    Row* row_to_insert = &(statement->row_to_insert);
+
+    serialize_row(row_to_insert, row_slot(table, table->num_rows));
+    table->num_rows += 1;
+    
+    return EXECUTE_SUCCESS;
+}
+
+ExecuteResult execute_select(Statement* statement, Table* table) {
+    Row row;
+    for (uint32_t i = 0; i < table->num_rows; i++) {
+        deserialize_row(row_slot(table, i), &row);
+        print_row(&row);
+    }
+    return EXECUTE_SUCCESS;
+}
+
+ExecuteResult execute_statement(Statement* statement, Table* table) {
     switch(statement->type) {
         case (STATEMENT_INSERT):
-            printf("This is where we would do an insert.\n");
-            break;
+            return execute_insert(statement, table);
         case (STATEMENT_SELECT):
-            printf("This is where we would do a select.\n");
-            break;
+            return execute_select(statement, table);
     }
+}
+
+void print_row(Row* row) {
+    printf("(%d, %s, %s)\n", row->id, row->username, row->email);
 }
 
 void serialize_row(Row* source, void* destination) {
@@ -216,4 +262,32 @@ void deserialize_row(void* source, Row* destination) {
         source + EMAIL_OFFSET,
         EMAIL_SIZE
     );
+}
+
+void* row_slot(Table* table, uint32_t row_num) {
+    uint32_t page_num = row_num / ROWS_PER_PAGE;
+    void *page = table->pages[page_num];
+    if (page == NULL) {
+        // Allocate memory only when we try to access page
+        page = table->pages[page_num] = malloc(PAGE_SIZE);
+    }
+    uint32_t row_offset = row_num % ROWS_PER_PAGE;
+    uint32_t byte_offset = row_offset * ROW_SIZE;
+    return page + byte_offset;
+}
+
+Table* new_table() {
+    Table* table = (Table*)malloc(sizeof(Table));
+    table->num_rows = 0;
+    for (uint32_t i = 0; i < TABLE_MAX_PAGES; i++) {
+        table->pages[i] = NULL;
+    }
+    return table;
+}
+
+void free_table(Table* table) {
+    for (int i = 0; table->pages[i]; i++) {
+        free(table->pages[i]);
+    }
+    free(table);
 }

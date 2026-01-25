@@ -48,3 +48,13 @@ OS Interface
         - overall height of tree is shorter
         - tree is always balanced
         - leaf nodes are all at the same level
+
+## Part 2 Notes
+
+- SQLite hard-coded table schema:
+```
+column      type
+id          integer
+username    varchar(32)
+email       varchar(255)
+```

@@ -7,8 +7,8 @@ This is a following of the tutorial for [building a SQLite clone from scratch in
 - [x] Part 1 - Introduction and Setting up the REPL
 - [x] Part 2 - World's Simplest SQL Compiler and Virtual Machine
 - [x] Part 3 - An In-Memory, Append-Only, Single-Table Database
-- [ ] Part 4
-- [ ] Part 5
+- [x] Part 4 - Our First Tests (and Bugs)
+- [ ] Part 5 - Persistence to Disk
 - [ ] Part 6
 - [ ] Part 7
 - [ ] Part 8

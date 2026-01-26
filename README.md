@@ -9,13 +9,13 @@ This is a following of the tutorial for [building a SQLite clone from scratch in
 - [x] Part 3 - An In-Memory, Append-Only, Single-Table Database
 - [x] Part 4 - Our First Tests (and Bugs)
 - [ ] Part 5 - Persistence to Disk
-- [ ] Part 6
-- [ ] Part 7
-- [ ] Part 8
-- [ ] Part 9
-- [ ] Part 10
-- [ ] Part 11
-- [ ] Part 12
-- [ ] Part 13
-- [ ] Part 14
-- [ ] Part 15
+- [ ] Part 6 - The Cursor Abstraction
+- [ ] Part 7 - Introduction to the B-Tree
+- [ ] Part 8 - B-Tree Leaf Node Format
+- [ ] Part 9 - Binary Search and Duplicate Keys
+- [ ] Part 10 - Splitting a Leaf Node
+- [ ] Part 11 - Recursively Searching the B-Tree
+- [ ] Part 12 - Scanning a Multi-Level B-Tree
+- [ ] Part 13 - Updaing Parent Node After a Split
+- [ ] Part 14 - Splitting Internal Nodes
+- [ ] Part 15 - Where to go next

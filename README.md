@@ -9,7 +9,7 @@ This is a following of the tutorial for [building a SQLite clone from scratch in
 - [x] Part 3 - An In-Memory, Append-Only, Single-Table Database
 - [x] Part 4 - Our First Tests (and Bugs)
 - [x] Part 5 - Persistence to Disk
-- [ ] Part 6 - The Cursor Abstraction
+- [x] Part 6 - The Cursor Abstraction
 - [ ] Part 7 - Introduction to the B-Tree
 - [ ] Part 8 - B-Tree Leaf Node Format
 - [ ] Part 9 - Binary Search and Duplicate Keys

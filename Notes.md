@@ -58,3 +58,7 @@ id          integer
 username    varchar(32)
 email       varchar(255)
 ```
+
+## Part 7 Notes
+
+- todo

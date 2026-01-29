@@ -23,7 +23,7 @@ rspec
 - [x] Part 6 - The Cursor Abstraction
 - [x] Part 7 - Introduction to the B-Tree
 - [x] Part 8 - B-Tree Leaf Node Format
-- [ ] Part 9 - Binary Search and Duplicate Keys
+- [x] Part 9 - Binary Search and Duplicate Keys
 - [ ] Part 10 - Splitting a Leaf Node
 - [ ] Part 11 - Recursively Searching the B-Tree
 - [ ] Part 12 - Scanning a Multi-Level B-Tree

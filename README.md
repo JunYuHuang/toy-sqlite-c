@@ -26,7 +26,7 @@ rspec
 - [x] Part 9 - Binary Search and Duplicate Keys
 - [x] Part 10 - Splitting a Leaf Node
 - [x] Part 11 - Recursively Searching the B-Tree
-- [ ] Part 12 - Scanning a Multi-Level B-Tree
+- [x] Part 12 - Scanning a Multi-Level B-Tree
 - [ ] Part 13 - Updating Parent Node After a Split
 - [ ] Part 14 - Splitting Internal Nodes
 - [ ] Part 15 - Where to go next

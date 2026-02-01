@@ -28,5 +28,5 @@ rspec
 - [x] Part 11 - Recursively Searching the B-Tree
 - [x] Part 12 - Scanning a Multi-Level B-Tree
 - [x] Part 13 - Updating Parent Node After a Split
-- [ ] Part 14 - Splitting Internal Nodes
+- [x] Part 14 - Splitting Internal Nodes
 - [ ] ~~~Part 15 - Where to go next~~
